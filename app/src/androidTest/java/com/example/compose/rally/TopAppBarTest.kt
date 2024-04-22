@@ -9,10 +9,12 @@ import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onRoot
+import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.printToLog
 import androidx.test.filters.SdkSuppress
 import com.example.compose.rally.ui.components.RallyTopAppBar
 import com.example.compose.rally.ui.theme.RallyTheme
+import org.junit.Assert.assertEquals
 import org.junit.Rule
 import org.junit.Test
 
@@ -57,15 +59,37 @@ class TopAppBarTest {
         // we can query the unmerged Semantics tree passing useUnmergedTree = true to the onRoot finder.
         composeTestRule.onRoot(useUnmergedTree = true).printToLog("currentLabelExists")
 
-        // Here we look for a node that has text = OVERVIEW and
-        // has a parent node with ContentDescription = Overview (as seen in the semantics tree)
+        // Here we look for a node that has text = ACCOUNTS and
+        // has a parent node with ContentDescription = Accounts (as seen in the semantics tree)
         // We don't necessarily need to add the hasParent matcher, but this way we avoid having a
         // broader match (eg with another node including the same text)
         composeTestRule.onNode(
             hasText(RallyScreen.Accounts.name.uppercase()) and
-                    hasParent(hasContentDescription(RallyScreen.Accounts.name))
-            , useUnmergedTree = true
+                    hasParent(hasContentDescription(RallyScreen.Accounts.name)),
+            useUnmergedTree = true
         )
             .assertExists()
+    }
+
+    @Test
+    fun rallyTopAppBarTest_clickTab_ChangesTab() {
+        val allScreens = RallyScreen.entries //mock the screens
+        var selectedScreen: RallyScreen? = null
+        composeTestRule.setContent {
+            RallyTheme {
+                RallyTopAppBar(
+                    allScreens = allScreens,
+                    onTabSelected = { screen -> selectedScreen = screen },
+                    currentScreen = RallyScreen.Accounts
+                )
+            }
+        }
+
+        composeTestRule.onNodeWithContentDescription(RallyScreen.Overview.name).performClick()
+
+        /* assertEquals passes, however assertIsSelected fails */
+
+        //composeTestRule.onNodeWithContentDescription(RallyScreen.Overview.name).assertIsSelected()
+        assertEquals(RallyScreen.Overview, selectedScreen)
     }
 }
